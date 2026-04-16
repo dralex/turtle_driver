@@ -25,6 +25,7 @@
 import rclpy
 import rclpy.node
 from geometry_msgs.msg import Twist, PoseStamped, Pose
+from tf.transformations import euler_from_quaternion
 import math
 
 TURTLE_TOPIC = '/turtle1/cmd_vel'
@@ -44,6 +45,7 @@ class TurtleDriver(rclpy.node.Node):
         self.get_logger().info('Turtle driver started')
 
         self.__current_pose = Pose()
+        self.__current_theta = 0.0
         self.__linear_k = 1.0
         self.__angular_k = 4.0
         self.__arrival_tolerance = 0.01
@@ -77,7 +79,11 @@ class TurtleDriver(rclpy.node.Node):
         
     def __pose_callback(self, msg):
         self.__current_pose = msg
-        
+        orientation_q = msg.pose.orientation
+        orientation_list = (orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w)
+        (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
+        self.__current_theta = yaw
+
     def __move_turtle(self):
         if self.__x_goal is None or self.__reached or self.__unreachable:
             return
@@ -104,7 +110,7 @@ class TurtleDriver(rclpy.node.Node):
                 return
 
         desired_angle = math.atan2(dy, dx)
-        angle_error = desired_angle - self.__current_pose.theta
+        angle_error = desired_angle - self.__current_theta
 
         angle_error = math.atan2(math.sin(angle_error), math.cos(angle_error))
 

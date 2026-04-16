@@ -79,7 +79,7 @@ class TurtleDriver(rclpy.node.Node):
         self.__current_pose = msg
         
     def __move_turtle(self):
-        if self.__x_goal is None or self.reached or self.unreachable:
+        if self.__x_goal is None or self.__reached or self.__unreachable:
             return
 
         dx = self.__x_goal - self.__current_pose.x
@@ -99,7 +99,7 @@ class TurtleDriver(rclpy.node.Node):
             time_no_progress = (current_time - self.__last_progress_time) / 1e9
             if time_no_progress > self.__no_progress_limit:
                 self.__stop()
-                self.unreachable = True
+                self.__unreachable = True
                 self.get_logger().warn('Goal is unreachable!')
                 return
 

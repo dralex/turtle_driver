@@ -96,7 +96,7 @@ class TurtleDriver(rclpy.node.Node):
             self.__last_progress_time = current_time
             self.__last_distance = distance
         else:
-            time_no_progress = (current_time - self.--last_progress_time) / 1e9
+            time_no_progress = (current_time - self.__last_progress_time) / 1e9
             if time_no_progress > self.__no_progress_limit:
                 self.__stop()
                 self.unreachable = True

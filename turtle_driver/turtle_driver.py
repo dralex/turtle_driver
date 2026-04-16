@@ -25,7 +25,6 @@
 import rclpy
 import rclpy.node
 from geometry_msgs.msg import Twist, PoseStamped, Pose
-from tf_transformations import euler_from_quaternion
 import math
 
 TURTLE_TOPIC = '/turtle1/cmd_vel'
@@ -34,6 +33,22 @@ GOAL_TOPIC = '/goal_topic'
 TIMER_PERIOD = 0.1
 MSG_QUEUE_LEN = 10
 STOP_MESSAGE_FRAME_ID = '__CANCEL_NAV__'
+
+def euler_from_quaternion(x, y, z, w):
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    roll_x = math.atan2(t0, t1)
+     
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch_y = math.asin(t2)
+     
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    yaw_z = math.atan2(t3, t4)
+     
+    return roll_x, pitch_y, yaw_z # in radians
 
 class TurtleDriver(rclpy.node.Node):
     def __init__(self):
@@ -81,7 +96,7 @@ class TurtleDriver(rclpy.node.Node):
         self.__current_pose = msg
         orientation_q = msg.pose.orientation
         orientation_list = (orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w)
-        (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
+        roll, pitch, yaw = euler_from_quaternion(*orientation_list)
         self.__current_theta = yaw
 
     def __move_turtle(self):

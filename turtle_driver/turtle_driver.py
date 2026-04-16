@@ -95,6 +95,7 @@ class TurtleDriver(rclpy.node.Node):
         self.__twist_publisher.publish(twist)
         
     def __pose_callback(self, msg):
+        self.get_logger().info('New pose: {}'.format(msg))
         self.__current_pose = msg
         orientation_q = msg.pose.orientation
         orientation_list = (orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w)

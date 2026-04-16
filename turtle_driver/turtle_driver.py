@@ -25,8 +25,7 @@
 import rclpy
 import rclpy.node
 from geometry_msgs.msg import Twist, PoseStamped, Pose
-import tf
-from tf.transformations import euler_from_quaternion
+from tf_transformations import euler_from_quaternion
 import math
 
 TURTLE_TOPIC = '/turtle1/cmd_vel'

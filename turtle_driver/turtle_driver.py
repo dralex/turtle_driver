@@ -27,7 +27,7 @@ import rclpy.node
 from geometry_msgs.msg import Twist, PoseStamped, Pose
 import math
 
-TWIST_TOPIC = '/turtle1/cmd_vel'
+TURTLE_TOPIC = '/turtle1/cmd_vel'
 POSE_TOPIC = '/turtle1/pose'
 GOAL_TOPIC = '/goal_topic'
 TIMER_PERIOD = 0.1

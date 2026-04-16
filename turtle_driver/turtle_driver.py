@@ -75,6 +75,7 @@ class TurtleDriver(rclpy.node.Node):
             self.__stop()
         else:
             self.__set_goal(msg.pose.position.x, msg.pose.position.y)
+        self.get_logger().info('New goal: ({}, {})'.format(self.__x_goal, self.__y_goal))
         
     def __set_goal(self, x, y):
         self.__x_goal = x
@@ -87,6 +88,7 @@ class TurtleDriver(rclpy.node.Node):
         self.__last_progress_time = self.get_clock().now().nanoseconds
 
     def __stop(self):
+        self.get_logger().info('Stop')
         twist = Twist()
         twist.linear.x = 0.0
         twist.angular.z = 0.0
@@ -103,6 +105,10 @@ class TurtleDriver(rclpy.node.Node):
         if self.__x_goal is None or self.__reached or self.__unreachable:
             return
 
+        self.get_logger().info('Moving: ({}, {}), {}'.format(self.__current_pose.position.x,
+                                                             self.__current_pose.position.y,
+                                                             self.__current_theta))
+        
         dx = self.__x_goal - self.__current_pose.position.x
         dy = self.__y_goal - self.__current_pose.position.y
         distance = math.sqrt(dx*dx + dy*dy)

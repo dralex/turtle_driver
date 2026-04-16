@@ -41,7 +41,7 @@ class TurtleDriver(rclpy.node.Node):
         self.__pose_subscriber = self.create_subscription(Pose, POSE_TOPIC, self.__pose_callback, MSG_QUEUE_LEN)
         self.__goal_subscriber = self.create_subscription(PoseStamped, GOAL_TOPIC, self.__goal_callback, MSG_QUEUE_LEN)
         self.__timer = self.create_timer(TIMER_PERIOD, self.__move_turtle)
-        self.get_logger.info('Turtle driver started')
+        self.get_logger().info('Turtle driver started')
 
         self.__current_pose = Pose()
         self.__linear_k = 1.0

@@ -82,8 +82,8 @@ class TurtleDriver(rclpy.node.Node):
         if self.__x_goal is None or self.__reached or self.__unreachable:
             return
 
-        dx = self.__x_goal - self.__current_pose.x
-        dy = self.__y_goal - self.__current_pose.y
+        dx = self.__x_goal - self.__current_pose.position.x
+        dy = self.__y_goal - self.__current_pose.position.y
         distance = math.sqrt(dx*dx + dy*dy)
         if distance < self.__arrival_tolerance:
             self.__stop()

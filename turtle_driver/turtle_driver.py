@@ -24,7 +24,8 @@
 
 import rclpy
 import rclpy.node
-from geometry_msgs.msg import Twist, PoseStamped, Pose
+from geometry_msgs.msg import Twist, PoseStamped
+from turtlesim.msg import Pose
 import math
 
 TURTLE_TOPIC = '/turtle1/cmd_vel'
@@ -33,22 +34,6 @@ GOAL_TOPIC = '/goal_topic'
 TIMER_PERIOD = 0.1
 MSG_QUEUE_LEN = 10
 STOP_MESSAGE_FRAME_ID = '__CANCEL_NAV__'
-
-def euler_from_quaternion(x, y, z, w):
-    t0 = +2.0 * (w * x + y * z)
-    t1 = +1.0 - 2.0 * (x * x + y * y)
-    roll_x = math.atan2(t0, t1)
-     
-    t2 = +2.0 * (w * y - z * x)
-    t2 = +1.0 if t2 > +1.0 else t2
-    t2 = -1.0 if t2 < -1.0 else t2
-    pitch_y = math.asin(t2)
-     
-    t3 = +2.0 * (w * z + x * y)
-    t4 = +1.0 - 2.0 * (y * y + z * z)
-    yaw_z = math.atan2(t3, t4)
-     
-    return roll_x, pitch_y, yaw_z # in radians
 
 class TurtleDriver(rclpy.node.Node):
     def __init__(self):
@@ -95,23 +80,14 @@ class TurtleDriver(rclpy.node.Node):
         self.__twist_publisher.publish(twist)
         
     def __pose_callback(self, msg):
-        self.get_logger().info('New pose: {}'.format(msg))
         self.__current_pose = msg
-        orientation_q = msg.pose.orientation
-        orientation_list = (orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w)
-        roll, pitch, yaw = euler_from_quaternion(*orientation_list)
-        self.__current_theta = yaw
 
     def __move_turtle(self):
         if self.__x_goal is None or self.__reached or self.__unreachable:
             return
-
-        self.get_logger().info('Moving: ({}, {}), {}'.format(self.__current_pose.position.x,
-                                                             self.__current_pose.position.y,
-                                                             self.__current_theta))
         
-        dx = self.__x_goal - self.__current_pose.position.x
-        dy = self.__y_goal - self.__current_pose.position.y
+        dx = self.__x_goal - self.__current_pose.x
+        dy = self.__y_goal - self.__current_pose.y
         distance = math.sqrt(dx*dx + dy*dy)
         if distance < self.__arrival_tolerance:
             self.__stop()
@@ -132,7 +108,7 @@ class TurtleDriver(rclpy.node.Node):
                 return
 
         desired_angle = math.atan2(dy, dx)
-        angle_error = desired_angle - self.__current_theta
+        angle_error = desired_angle - self.__current_pose.theta
 
         angle_error = math.atan2(math.sin(angle_error), math.cos(angle_error))
 
@@ -148,7 +124,6 @@ class TurtleDriver(rclpy.node.Node):
             twist.angular.z = -2.0
 
         self.__twist_publisher.publish(twist)        
-        self.get_logger().info('Twist: {}'.format(twist))
 
 def main(args=None):
     rclpy.init(args=args)

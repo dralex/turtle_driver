@@ -147,6 +147,7 @@ class TurtleDriver(rclpy.node.Node):
             twist.angular.z = -2.0
 
         self.__twist_publisher.publish(twist)        
+        self.get_logger().info('Twist: {}'.format(twist))
 
 def main(args=None):
     rclpy.init(args=args)

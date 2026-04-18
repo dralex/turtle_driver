@@ -116,9 +116,10 @@ class TurtleDriver(rclpy.node.Node):
         dy = self.__y_goal - self.__current_pose.y
         distance = math.sqrt(dx*dx + dy*dy)
         if distance < self.__arrival_tolerance:
+            self.get_logger().info('Goal ({}, {}) reached!'.format(self.__x_goal, self.__y_goal))
+            self.__set_goal(None, None)
             self.__stop()
             self.__send_message(SimpleMessage.MSG_NAVIGATION_MOVE_COMPLETED)
-            self.get_logger().info('Goal reached!')
             return
 
         current_time = self.get_clock().now().nanoseconds
@@ -128,9 +129,10 @@ class TurtleDriver(rclpy.node.Node):
         else:
             time_no_progress = (current_time - self.__last_progress_time) / 1e9
             if time_no_progress > self.__no_progress_limit:
+                self.get_logger().warn('Goal ({}, {}) is unreachable!'.format(self.__x_goal, self.__y_goal))
+                self.__set_goal(None, None)        
                 self.__stop()
                 self.__send_message(SimpleMessage.MSG_NAVIGATION_COLLISION_DETECTED)
-                self.get_logger().warn('Goal is unreachable!')
                 return
 
         desired_angle = math.atan2(dy, dx)

@@ -72,7 +72,13 @@ class TurtleDriver(rclpy.node.Node):
             self.__stop()
         else:
             self.__set_goal(msg.pose.position.x, msg.pose.position.y)
-        self.get_logger().info('New goal: ({}, {})'.format(self.__x_goal, self.__y_goal))
+            self.get_logger().info('New goal: ({}, {})'.format(self.__x_goal, self.__y_goal))
+            dx = self.__x_goal - self.__current_pose.x
+            dy = self.__y_goal - self.__current_pose.y
+            distance = math.sqrt(dx*dx + dy*dy)
+            if distance < self.__arrival_tolerance:
+                self.__goal_reached()
+                return
         
     def __set_goal(self, x, y):
         self.__x_goal = x
@@ -87,6 +93,12 @@ class TurtleDriver(rclpy.node.Node):
         twist.linear.x = 0.0
         twist.angular.z = 0.0
         self.__twist_publisher.publish(twist)
+
+    def __goal_reached(self):
+        self.get_logger().info('Goal ({}, {}) reached!'.format(self.__x_goal, self.__y_goal))
+        self.__set_goal(None, None)
+        self.__stop()
+        self.__send_message(SimpleMessage.MSG_NAVIGATION_MOVE_COMPLETED)
         
     def __pose_callback(self, msg):
         self.__current_pose = msg
@@ -116,10 +128,7 @@ class TurtleDriver(rclpy.node.Node):
         dy = self.__y_goal - self.__current_pose.y
         distance = math.sqrt(dx*dx + dy*dy)
         if distance < self.__arrival_tolerance:
-            self.get_logger().info('Goal ({}, {}) reached!'.format(self.__x_goal, self.__y_goal))
-            self.__set_goal(None, None)
-            self.__stop()
-            self.__send_message(SimpleMessage.MSG_NAVIGATION_MOVE_COMPLETED)
+            self.__goal_reached()
             return
 
         current_time = self.get_clock().now().nanoseconds

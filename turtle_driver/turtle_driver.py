@@ -35,6 +35,7 @@ TURTLE_ID = 'turtle1'
 TURTLE_TOPIC = '/{}/cmd_vel'.format(TURTLE_ID)
 POSE_TOPIC = '/{}/pose'.format(TURTLE_ID)
 ODOM_TOPIC = '/odom'
+TWIST_TOPIC = '/cmd_vel'
 MESSAGES_TOPIC = '/hsm_ros_msg'
 GOAL_TOPIC = '/goal_pose'
 TIMER_PERIOD = 0.1
@@ -47,6 +48,7 @@ class TurtleDriver(rclpy.node.Node):
         self.__odom_publisher = self.create_publisher(Odometry, ODOM_TOPIC, MSG_QUEUE_LEN)
         self.__twist_publisher = self.create_publisher(Twist, TURTLE_TOPIC, MSG_QUEUE_LEN)
         self.__msg_publisher = self.create_publisher(SimpleMessage, MESSAGES_TOPIC, MSG_QUEUE_LEN)
+        self.__twist_subscriber = self.create_subscription(Twist, TWIST_TOPIC, self.__twist_callback, MSG_QUEUE_LEN)
         self.__pose_subscriber = self.create_subscription(Pose, POSE_TOPIC, self.__pose_callback, MSG_QUEUE_LEN)
         self.__goal_subscriber = self.create_subscription(PoseStamped, GOAL_TOPIC, self.__goal_callback, MSG_QUEUE_LEN)
         self.__timer = self.create_timer(TIMER_PERIOD, self.__move_turtle)
@@ -161,6 +163,10 @@ class TurtleDriver(rclpy.node.Node):
             twist.angular.z = -2.0
 
         self.__twist_publisher.publish(twist)        
+
+    def __twist_callback(self, msg):
+        self.__twist_publisher.publish(msg)
+
 
 def main(args=None):
     rclpy.init(args=args)

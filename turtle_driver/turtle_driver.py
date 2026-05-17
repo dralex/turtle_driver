@@ -55,6 +55,7 @@ class TurtleDriver(rclpy.node.Node):
         self.get_logger().info('Turtle driver started')
 
         self.__current_pose = Pose()
+        self.__current_twist = Twist()
         self.__linear_k = 1.0
         self.__angular_k = 4.0
         self.__arrival_tolerance = 0.01
@@ -123,6 +124,10 @@ class TurtleDriver(rclpy.node.Node):
         self.__odom_publisher.publish(odom)
 
     def __move_turtle(self):
+        if self.__current_twist != Twist():
+            self.__twist_publisher.publish(msg)
+            # do not break the goal logic here - the HSM programmer should control this by herself 
+        
         if self.__x_goal is None:
             return
         
@@ -166,7 +171,7 @@ class TurtleDriver(rclpy.node.Node):
 
     def __twist_callback(self, msg):
         self.__twist_publisher.publish(msg)
-
+        self.__current_twist = msg
 
 def main(args=None):
     rclpy.init(args=args)

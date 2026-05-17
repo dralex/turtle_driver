@@ -125,7 +125,7 @@ class TurtleDriver(rclpy.node.Node):
 
     def __move_turtle(self):
         if self.__current_twist != Twist():
-            self.__twist_publisher.publish(msg)
+            self.__twist_publisher.publish(self.__current_twist)
             # do not break the goal logic here - the HSM programmer should control this by herself 
         
         if self.__x_goal is None:

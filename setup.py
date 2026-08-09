@@ -17,7 +17,7 @@ setup(
     maintainer='Alexey Fedoseev',
     maintainer_email='aleksey@fedoseev.net',
     description='The simple ROS2 node which control a turtle moving to the particular point',
-    license='GPL v3',
+    license='GPL-3.0-or-later',
     extras_require={
         'test': [
             'pytest',

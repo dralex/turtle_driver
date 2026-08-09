@@ -15,7 +15,7 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/
@@ -24,6 +24,7 @@
 
 import rclpy
 import rclpy.node
+from rclpy.executors import ExternalShutdownException
 from geometry_msgs.msg import Twist, PoseStamped
 from nav_msgs.msg import Odometry
 from turtlesim.msg import Pose
@@ -176,8 +177,13 @@ class TurtleDriver(rclpy.node.Node):
 def main(args=None):
     rclpy.init(args=args)
     node = TurtleDriver()
-    rclpy.spin(node)
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 if __name__ == '__main__':
     main()

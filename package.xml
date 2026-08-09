@@ -5,10 +5,20 @@
   <version>1.0.0</version>
   <description>The simple ROS2 node which control a turtle moving to the particular point</description>
   <maintainer email="aleksey@fedoseev.net">Alexey Fedoseev</maintainer>
-  <license>GPL v3</license>
+  <license>GPL-3.0-or-later</license>
 
   <exec_depend>rclpy</exec_depend>
   <depend>hsm_interfaces</depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>turtlesim</exec_depend>
+  <!-- transforms3d 0.4.2 or newer is required: 0.4.1 calls the np.maximum_sctype
+       removed in NumPy 2.0 and fails to import -->
+  <exec_depend>python3-transforms3d</exec_depend>
+
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
 
   <export>
     <build_type>ament_python</build_type>

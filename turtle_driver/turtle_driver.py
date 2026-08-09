@@ -99,11 +99,13 @@ class TurtleDriver(rclpy.node.Node):
         self.__twist_publisher.publish(twist)
 
     def __goal_reached(self):
+        # the arrival is detected here to stop the turtle, but MOVE_COMPLETED is reported
+        # by the navigation module of the API: the driver is a platform adapter and the
+        # HSM events have to be raised the same way on the platforms without such driver
         self.get_logger().info('Goal ({}, {}) reached!'.format(self.__x_goal, self.__y_goal))
         self.__set_goal(None, None)
         self.__stop()
-        self.__send_message(SimpleMessage.MSG_NAVIGATION_MOVE_COMPLETED)
-        
+
     def __pose_callback(self, msg):
         self.__current_pose = msg
 

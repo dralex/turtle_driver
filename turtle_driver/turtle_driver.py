@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # The ROS2 Turtle Driver
 # -----------------------------------------------------------------------------
-# 
+#
 # Simple Turtle Driver node
 # Based on the code from this online course: https://stepik.org/course/221157/
 #
@@ -11,7 +11,7 @@
 # modify it under the terms of the GNU General Public
 # License as published by the Free Software Foundation; either
 # version 3 of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -42,6 +42,7 @@ GOAL_TOPIC = '/goal_pose'
 TIMER_PERIOD = 0.1
 MSG_QUEUE_LEN = 10
 STOP_MESSAGE_FRAME_ID = '__CANCEL_NAV__'
+
 
 class TurtleDriver(rclpy.node.Node):
     def __init__(self):
@@ -83,7 +84,7 @@ class TurtleDriver(rclpy.node.Node):
             if distance < self.__arrival_tolerance:
                 self.__goal_reached()
                 return
-        
+
     def __set_goal(self, x, y):
         self.__x_goal = x
         self.__y_goal = y
@@ -129,11 +130,11 @@ class TurtleDriver(rclpy.node.Node):
     def __move_turtle(self):
         if self.__current_twist != Twist():
             self.__twist_publisher.publish(self.__current_twist)
-            # do not break the goal logic here - the HSM programmer should control this by herself 
-        
+            # do not break the goal logic here - the HSM programmer should control this by herself
+
         if self.__x_goal is None:
             return
-        
+
         dx = self.__x_goal - self.__current_pose.x
         dy = self.__y_goal - self.__current_pose.y
         distance = math.sqrt(dx*dx + dy*dy)
@@ -149,7 +150,7 @@ class TurtleDriver(rclpy.node.Node):
             time_no_progress = (current_time - self.__last_progress_time) / 1e9
             if time_no_progress > self.__no_progress_limit:
                 self.get_logger().warn('Goal ({}, {}) is unreachable!'.format(self.__x_goal, self.__y_goal))
-                self.__set_goal(None, None)        
+                self.__set_goal(None, None)
                 self.__stop()
                 self.__send_message(SimpleMessage.MSG_NAVIGATION_COLLISION_DETECTED)
                 return
@@ -170,11 +171,12 @@ class TurtleDriver(rclpy.node.Node):
         elif twist.angular.z < -2.0:
             twist.angular.z = -2.0
 
-        self.__twist_publisher.publish(twist)        
+        self.__twist_publisher.publish(twist)
 
     def __twist_callback(self, msg):
         self.__twist_publisher.publish(msg)
         self.__current_twist = msg
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -186,6 +188,7 @@ def main(args=None):
     finally:
         node.destroy_node()
         rclpy.try_shutdown()
+
 
 if __name__ == '__main__':
     main()

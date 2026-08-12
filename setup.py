@@ -1,3 +1,5 @@
+from glob import glob
+
 from setuptools import find_packages, setup
 
 package_name = 'turtle_driver'
@@ -11,6 +13,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', ['launch/start.launch.py']),
+        ('share/' + package_name + '/config', glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

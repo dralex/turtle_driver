@@ -28,17 +28,17 @@ from rclpy.executors import ExternalShutdownException
 from geometry_msgs.msg import Twist, PoseStamped
 from nav_msgs.msg import Odometry
 from turtlesim.msg import Pose
+from turtle_driver.parameters import declare
 from hsm_interfaces.msg import SimpleMessage
 import math
 from transforms3d.euler import euler2quat
 
 TURTLE_ID = 'turtle1'
-TURTLE_TOPIC = '/{}/cmd_vel'.format(TURTLE_ID)
-POSE_TOPIC = '/{}/pose'.format(TURTLE_ID)
 ODOM_TOPIC = '/odom'
 TWIST_TOPIC = '/cmd_vel'
 MESSAGES_TOPIC = '/hsm_ros_msg'
 GOAL_TOPIC = '/goal_pose'
+ODOM_FRAME = 'world'
 TIMER_PERIOD = 0.1
 MSG_QUEUE_LEN = 10
 STOP_MESSAGE_FRAME_ID = '__CANCEL_NAV__'
@@ -47,21 +47,59 @@ STOP_MESSAGE_FRAME_ID = '__CANCEL_NAV__'
 class TurtleDriver(rclpy.node.Node):
     def __init__(self):
         rclpy.node.Node.__init__(self, 'turtle_driver')
-        self.__odom_publisher = self.create_publisher(Odometry, ODOM_TOPIC, MSG_QUEUE_LEN)
-        self.__twist_publisher = self.create_publisher(Twist, TURTLE_TOPIC, MSG_QUEUE_LEN)
-        self.__msg_publisher = self.create_publisher(SimpleMessage, MESSAGES_TOPIC, MSG_QUEUE_LEN)
-        self.__twist_subscriber = self.create_subscription(Twist, TWIST_TOPIC, self.__twist_callback, MSG_QUEUE_LEN)
-        self.__pose_subscriber = self.create_subscription(Pose, POSE_TOPIC, self.__pose_callback, MSG_QUEUE_LEN)
-        self.__goal_subscriber = self.create_subscription(PoseStamped, GOAL_TOPIC, self.__goal_callback, MSG_QUEUE_LEN)
-        self.__timer = self.create_timer(TIMER_PERIOD, self.__move_turtle)
-        self.get_logger().info('Turtle driver started')
+        # the turtle name is not a topic: it is the name the simulator gives its turtle,
+        # and the two turtle topics are built from it
+        self.__turtle_name = declare(
+            self, 'turtle_name', TURTLE_ID,
+            'the name of the turtle of the simulator to drive')
+        self.__odom_frame = declare(
+            self, 'odom_frame', ODOM_FRAME,
+            'the frame the published odometry is expressed in')
+        # the control law: the turtle is driven to the goal by a proportional controller
+        self.__linear_k = declare(
+            self, 'linear_k', 1.0,
+            'the proportional gain of the linear speed')
+        self.__angular_k = declare(
+            self, 'angular_k', 4.0,
+            'the proportional gain of the angular speed')
+        self.__linear_limit = declare(
+            self, 'linear_limit', 2.0,
+            'the largest linear speed the driver commands')
+        self.__angular_limit = declare(
+            self, 'angular_limit', 2.0,
+            'the largest angular speed the driver commands')
+        self.__arrival_tolerance = declare(
+            self, 'arrival_tolerance', 0.01,
+            'the distance to the goal at which the driver stops the turtle')
+        self.__progress_epsilon = declare(
+            self, 'progress_epsilon', 0.001,
+            'the decrease of the distance to the goal which counts as progress')
+        self.__no_progress_limit = declare(
+            self, 'no_progress_limit', 2.0,
+            'the time (s) without progress after which a collision is reported')
+        control_period = declare(
+            self, 'control_period', TIMER_PERIOD,
+            'the period (s) of the control loop')
+        queue_length = declare(
+            self, 'message_queue_length', MSG_QUEUE_LEN,
+            'the length of the ROS2 message queues')
+
+        turtle_topic = '/{}/cmd_vel'.format(self.__turtle_name)
+        pose_topic = '/{}/pose'.format(self.__turtle_name)
+        self.__odom_publisher = self.create_publisher(Odometry, ODOM_TOPIC, queue_length)
+        self.__twist_publisher = self.create_publisher(Twist, turtle_topic, queue_length)
+        self.__msg_publisher = self.create_publisher(SimpleMessage, MESSAGES_TOPIC, queue_length)
+        self.__twist_subscriber = self.create_subscription(Twist, TWIST_TOPIC,
+                                                           self.__twist_callback, queue_length)
+        self.__pose_subscriber = self.create_subscription(Pose, pose_topic,
+                                                          self.__pose_callback, queue_length)
+        self.__goal_subscriber = self.create_subscription(PoseStamped, GOAL_TOPIC,
+                                                          self.__goal_callback, queue_length)
+        self.__timer = self.create_timer(control_period, self.__move_turtle)
+        self.get_logger().info('Turtle driver started ({})'.format(self.__turtle_name))
 
         self.__current_pose = Pose()
         self.__current_twist = Twist()
-        self.__linear_k = 1.0
-        self.__angular_k = 4.0
-        self.__arrival_tolerance = 0.01
-        self.__no_progress_limit = 2.0
 
         self.__set_goal(None, None)
         self.__stop()
@@ -113,8 +151,8 @@ class TurtleDriver(rclpy.node.Node):
         # Publish the turtle odometry
         odom = Odometry()
         odom.header.stamp = self.get_clock().now().to_msg()
-        odom.header.frame_id = 'world'
-        odom.child_frame_id = TURTLE_ID
+        odom.header.frame_id = self.__odom_frame
+        odom.child_frame_id = self.__turtle_name
         odom.pose.pose.position.x = float(msg.x)
         odom.pose.pose.position.y = float(msg.y)
         odom.pose.pose.position.z = 0.0
@@ -143,7 +181,7 @@ class TurtleDriver(rclpy.node.Node):
             return
 
         current_time = self.get_clock().now().nanoseconds
-        if distance < self.__last_distance - 0.001:
+        if distance < self.__last_distance - self.__progress_epsilon:
             self.__last_progress_time = current_time
             self.__last_distance = distance
         else:
@@ -162,14 +200,14 @@ class TurtleDriver(rclpy.node.Node):
 
         twist = Twist()
         twist.linear.x = self.__linear_k * distance
-        if twist.linear.x > 2.0:
-            twist.linear.x = 2.0
+        if twist.linear.x > self.__linear_limit:
+            twist.linear.x = self.__linear_limit
 
         twist.angular.z = self.__angular_k * angle_error
-        if twist.angular.z > 2.0:
-            twist.angular.z = 2.0
-        elif twist.angular.z < -2.0:
-            twist.angular.z = -2.0
+        if twist.angular.z > self.__angular_limit:
+            twist.angular.z = self.__angular_limit
+        elif twist.angular.z < -self.__angular_limit:
+            twist.angular.z = -self.__angular_limit
 
         self.__twist_publisher.publish(twist)
 

@@ -1,0 +1,37 @@
+# -----------------------------------------------------------------------------
+# The ROS2 Turtle Driver
+#
+# The default parameters of the turtle driver node
+#
+# Copyright (C) 2026 Alexey Fedoseev <aleksey@fedoseev.net>
+#
+# -----------------------------------------------------------------------------
+#
+# The values below are the defaults built into the node: the file documents them and is
+# the place to retune the driver. The topic names are not parameters - they are changed
+# by the ROS2 remapping of the node.
+
+turtle_driver:
+  ros__parameters:
+    # the turtle of the simulator to drive; the /<name>/cmd_vel and /<name>/pose topics
+    # are built from it
+    turtle_name: "turtle1"
+    # the frame the published odometry is expressed in
+    odom_frame: "world"
+    # the proportional controller driving the turtle to the goal
+    linear_k: 1.0
+    angular_k: 4.0
+    # the largest speeds the driver commands
+    linear_limit: 2.0
+    angular_limit: 2.0
+    # the distance to the goal at which the driver stops the turtle. Note that the
+    # navigation module reports MOVE_COMPLETED at its own goal_tolerance, which is
+    # larger by default, so the driver keeps steering after the event is raised
+    arrival_tolerance: 0.01
+    # the decrease of the distance to the goal which counts as progress, and the time
+    # without progress after which the goal is reported as unreachable
+    progress_epsilon: 0.001
+    no_progress_limit: 2.0
+    # the period (s) of the control loop
+    control_period: 0.1
+    message_queue_length: 10

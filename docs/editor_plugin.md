@@ -41,7 +41,7 @@ execs the adapter `share/hsm_generator/editor-plugin/ros2_env` of the first pref
 |---|---|---|---|---|
 | `check` | `diagnostics` | `--ros-exec hsm_tests hsm_turtle_run ${input} --check --json ${diagnostics}` | 0, 1 | 60 s |
 | `generate` | `files` (`outdir: ws`) | `hsm_generator ${input} -o ${outdir}/src/hsm_controller -f -q` | 0 | 60 s |
-| `run` | `files` (`outdir: trace`) | `--ros-exec hsm_tests hsm_turtle_run ${input} --workspace ${param:ws} --trace ${outdir} --name ${document_name} --duration ... --pose ... [--headless]` | 0, 1 | none |
+| `run` | `files` (`outdir: trace`) | `--ros-exec hsm_tests hsm_turtle_run ${input} --workspace ${param:ws} --trace ${outdir} --name ${document_name} --duration ... --pose X Y HEADING --degrees --image ${param:trace_image} [--headless]` | 0, 1 | none |
 
 * `check` reports the generator's finding first; a diagram the generator accepts gets the
   turtle warnings below. Warnings do not stop a run.
@@ -51,7 +51,7 @@ execs the adapter `share/hsm_generator/editor-plugin/ros2_env` of the first pref
   build and the event timeline stream into the output tab. The run ends with the duration, when
   the controller ends, or on Cancel; the duration 0 runs until Cancel. Every node is stopped.
 * `run` writes the path of the turtle into the trace folder as `<document name>.csv`
-  (`t,x,y,theta`) and `.svg` (the world at the turtlesim scale and colours, the path, the start
+  (`t,x,y,theta`, theta in radians) and, unless `trace_image` is off, `.svg` (the world at the turtlesim scale and colours, the path, the start
   and the turtle). The editor lists them when the run ends by itself; a cancelled run writes
   them too, but the editor drops a cancelled run, so they are not listed.
 * All three actions are on the plugin toolbar and read `${input}`, unsaved edits included.
@@ -63,9 +63,10 @@ execs the adapter `share/hsm_generator/editor-plugin/ros2_env` of the first pref
 | `setup` | `file` | `persistent` | `/opt/ros/jazzy/setup.bash` | all |
 | `ws` | `dir`, `create`, `required` | `document` | `${document_dir}/ros2_ws` | generate, run |
 | `trace` | `dir`, `create`, `required` | `document` | `${document_dir}/turtle-trace` | run |
+| `trace_image` | `bool` | `document` | true | run: write the SVG picture besides the CSV |
 | `duration` | `int`, min 0 | `document` | 60 | run: the limit, s; 0 - until Cancel |
 | `x`, `y` | `double`, 0..11.088889 | `document` | 5.544445 | run: the start position, turtlesim's spawn |
-| `theta` | `double` | `document` | 0 | run: the start heading, rad |
+| `heading` | `double`, -360..360 | `document` | 0 | run: the start heading, degrees counterclockwise from X |
 | `headless` | `bool` | `document` | false | run: no simulator window |
 
 ## The turtle checks

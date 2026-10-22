@@ -13,8 +13,6 @@
   "Start X, m": "Начальная X, м",
   "Start Y, m": "Начальная Y, м",
   "The start position of the turtle; the world is 11.09 m across": "Начальное положение черепахи; размер мира — 11,09 м",
-  "Start heading, rad": "Начальный курс, рад",
-  "The start heading of the turtle": "Начальный курс черепахи",
   "No simulator window": "Без окна симулятора",
   "Run the simulator without its window": "Запускать симулятор без окна",
   "Check for the turtle": "Проверить для черепахи",
@@ -22,5 +20,9 @@
   "Generate the package...": "Сгенерировать пакет...",
   "Write the hsm_controller package into the src directory of the workspace": "Записать пакет hsm_controller в каталог src рабочего пространства",
   "Run the turtle...": "Запустить черепаху...",
-  "Generate and build the package, then drive the turtle with it; the event timeline streams into the plugin's output tab, the path of the turtle is written into the trace folder": "Сгенерировать и собрать пакет, затем управлять им черепахой; ход событий появляется во вкладке вывода плагина, путь черепахи записывается в каталог следа"
+  "Generate and build the package, then drive the turtle with it; the event timeline streams into the plugin's output tab, the path of the turtle is written into the trace folder": "Сгенерировать и собрать пакет, затем управлять им черепахой; ход событий появляется во вкладке вывода плагина, путь черепахи записывается в каталог следа",
+  "Start heading, deg": "Начальный курс, град",
+  "The start heading of the turtle, counterclockwise from the X axis": "Начальный курс черепахи, против часовой стрелки от оси X",
+  "Trace image": "Изображение следа",
+  "Write the SVG picture of the path besides the CSV": "Записывать изображение пути в SVG вместе с CSV"
 }

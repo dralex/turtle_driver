@@ -66,12 +66,22 @@
       "description": "The start position of the turtle; the world is 11.09 m across"
     },
     {
-      "id": "theta",
+      "id": "heading",
       "type": "double",
-      "label": "Start heading, rad",
+      "label": "Start heading, deg",
       "scope": "document",
       "default": 0.0,
-      "description": "The start heading of the turtle"
+      "min": -360.0,
+      "max": 360.0,
+      "description": "The start heading of the turtle, counterclockwise from the X axis"
+    },
+    {
+      "id": "trace_image",
+      "type": "bool",
+      "label": "Trace image",
+      "scope": "document",
+      "default": true,
+      "description": "Write the SVG picture of the path besides the CSV"
     },
     {
       "id": "headless",
@@ -172,7 +182,10 @@
         "--pose",
         "${param:x}",
         "${param:y}",
-        "${param:theta}",
+        "${param:heading}",
+        "--degrees",
+        "--image",
+        "${param:trace_image}",
         {
           "if": "headless",
           "argv": [
@@ -184,10 +197,11 @@
         "setup",
         "ws",
         "trace",
+        "trace_image",
         "duration",
         "x",
         "y",
-        "theta",
+        "heading",
         "headless"
       ]
     }

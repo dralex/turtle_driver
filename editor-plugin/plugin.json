@@ -1,0 +1,195 @@
+{
+  "api": 1,
+  "id": "hsm-turtle",
+  "name": "HSM Turtle",
+  "version": "1.0.0",
+  "description": "Runs the diagram as the behaviour of the turtle of turtlesim: checks it for the turtle, generates and builds the hsm_controller ROS 2 package and drives the turtle with it, tracing its path. Needs ROS 2 with turtlesim, turtle_driver, hsm_generator and hsm_tests, and the hsmd dispatcher.",
+  "icon": "icons/turtle.svg",
+  "interpreter": "bash",
+  "parameters": [
+    {
+      "id": "setup",
+      "type": "file",
+      "label": "ROS 2 setup script",
+      "scope": "persistent",
+      "default": "/opt/ros/jazzy/setup.bash",
+      "filter": "Setup scripts (*.bash)",
+      "description": "The setup.bash providing turtlesim, turtle_driver, hsm_generator and hsm_tests; empty: the editor's environment"
+    },
+    {
+      "id": "ws",
+      "type": "dir",
+      "label": "Workspace",
+      "scope": "document",
+      "default": "${document_dir}/ros2_ws",
+      "create": true,
+      "required": true,
+      "description": "The colcon workspace of the generated package"
+    },
+    {
+      "id": "trace",
+      "type": "dir",
+      "label": "Trace folder",
+      "scope": "document",
+      "default": "${document_dir}/turtle-trace",
+      "create": true,
+      "required": true,
+      "description": "Where the run writes the path of the turtle, as CSV and SVG"
+    },
+    {
+      "id": "duration",
+      "type": "int",
+      "label": "Run duration, s",
+      "scope": "document",
+      "default": 60,
+      "min": 0,
+      "description": "The run stops earlier when the controller ends; 0: until Cancel"
+    },
+    {
+      "id": "x",
+      "type": "double",
+      "label": "Start X, m",
+      "scope": "document",
+      "default": 5.544445,
+      "min": 0.0,
+      "max": 11.088889,
+      "description": "The start position of the turtle; the world is 11.09 m across"
+    },
+    {
+      "id": "y",
+      "type": "double",
+      "label": "Start Y, m",
+      "scope": "document",
+      "default": 5.544445,
+      "min": 0.0,
+      "max": 11.088889,
+      "description": "The start position of the turtle; the world is 11.09 m across"
+    },
+    {
+      "id": "theta",
+      "type": "double",
+      "label": "Start heading, rad",
+      "scope": "document",
+      "default": 0.0,
+      "description": "The start heading of the turtle"
+    },
+    {
+      "id": "headless",
+      "type": "bool",
+      "label": "No simulator window",
+      "scope": "document",
+      "default": false,
+      "description": "Run the simulator without its window"
+    }
+  ],
+  "actions": [
+    {
+      "id": "check",
+      "label": "Check for the turtle",
+      "result": "diagnostics",
+      "exit_ok": [
+        0,
+        1
+      ],
+      "icon": "icons/check.svg",
+      "toolbar": true,
+      "description": "Check the diagram and what the turtle cannot do: the laser scan events, the pump, the points outside the world",
+      "argv": [
+        "${plugin_dir}/turtle_env",
+        "--setup",
+        "${param:setup}",
+        "--ros-exec",
+        "hsm_tests",
+        "hsm_turtle_run",
+        "${input}",
+        "--check",
+        "--json",
+        "${diagnostics}"
+      ],
+      "parameters": [
+        "setup"
+      ]
+    },
+    {
+      "id": "generate",
+      "label": "Generate the package...",
+      "result": "files",
+      "outdir": "ws",
+      "icon": "icons/generate.svg",
+      "toolbar": true,
+      "meta": {
+        "platformLanguage": "Python"
+      },
+      "description": "Write the hsm_controller package into the src directory of the workspace",
+      "argv": [
+        "${plugin_dir}/turtle_env",
+        "--setup",
+        "${param:setup}",
+        "hsm_generator",
+        "${input}",
+        "-o",
+        "${outdir}/src/hsm_controller",
+        "-f",
+        "-q"
+      ],
+      "parameters": [
+        "setup",
+        "ws"
+      ]
+    },
+    {
+      "id": "run",
+      "label": "Run the turtle...",
+      "result": "files",
+      "outdir": "trace",
+      "exit_ok": [
+        0,
+        1
+      ],
+      "timeout": 0,
+      "icon": "icons/run.svg",
+      "toolbar": true,
+      "meta": {
+        "platformLanguage": "Python"
+      },
+      "description": "Generate and build the package, then drive the turtle with it; the event timeline streams into the plugin's output tab, the path of the turtle is written into the trace folder",
+      "argv": [
+        "${plugin_dir}/turtle_env",
+        "--setup",
+        "${param:setup}",
+        "--ros-exec",
+        "hsm_tests",
+        "hsm_turtle_run",
+        "${input}",
+        "--workspace",
+        "${param:ws}",
+        "--trace",
+        "${outdir}",
+        "--name",
+        "${document_name}",
+        "--duration",
+        "${param:duration}",
+        "--pose",
+        "${param:x}",
+        "${param:y}",
+        "${param:theta}",
+        {
+          "if": "headless",
+          "argv": [
+            "--headless"
+          ]
+        }
+      ],
+      "parameters": [
+        "setup",
+        "ws",
+        "trace",
+        "duration",
+        "x",
+        "y",
+        "theta",
+        "headless"
+      ]
+    }
+  ]
+}

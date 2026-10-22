@@ -18,6 +18,17 @@ ros2 launch turtle_driver start.launch.py                  # with a window
 ros2 launch turtle_driver start.launch.py headless:=true   # with no display
 ```
 
+## The CyberiadaPro Plugin
+
+The `hsm-turtle` plugin (`editor-plugin/`) runs a diagram as the behaviour of the turtle: it
+checks the diagram for the turtle, generates and builds the controller package and drives the
+turtle with it, writing the path of the turtle as CSV and SVG. It is described in
+`docs/editor_plugin.md`.
+
+```
+ros2 run hsm_tests hsm_turtle_run --install-editor-plugin
+```
+
 ## The Tests
 
 The `test` directory holds the L2 tier of the framework: the driver node alone, driven through

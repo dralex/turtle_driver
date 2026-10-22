@@ -1,0 +1,51 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# The ROS2 Turtle Driver
+#
+# The ROS 2 environment of the hsm-turtle editor plugin actions
+#
+# Copyright (C) 2026 Alexey Fedoseev <aleksey@fedoseev.net>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see https://www.gnu.org/licenses/
+#
+# -----------------------------------------------------------------------------
+#
+# turtle_env --setup FILE ARGS...
+#
+# Sources FILE and hands ARGS to the ros2_env adapter of hsm_generator (the hsm-ros2 plugin)
+# found in that environment.
+
+EXIT_USAGE=5
+
+fail() {
+    echo "turtle_env: $1" >&2
+    exit $EXIT_USAGE
+}
+
+[ "$1" = --setup ] && [ $# -ge 2 ] || fail "usage: turtle_env --setup FILE ARGS..."
+SETUP=$2
+shift 2
+# the setup scripts read unset variables, so they are sourced without set -u
+if [ -n "$SETUP" ]; then
+    [ -f "$SETUP" ] || fail "the ROS 2 setup $SETUP is not found; set it in the plugin settings"
+    . "$SETUP" || fail "sourcing $SETUP failed"
+fi
+IFS=: read -r -a PREFIXES <<< "${AMENT_PREFIX_PATH:-}"
+for PREFIX in "${PREFIXES[@]}"; do
+    ADAPTER=$PREFIX/share/hsm_generator/editor-plugin/ros2_env
+    if [ -f "$ADAPTER" ]; then
+        exec bash "$ADAPTER" --setup "" "$@"
+    fi
+done
+fail "the package hsm_generator is not found; check the ROS 2 setup"

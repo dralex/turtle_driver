@@ -14,6 +14,11 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', ['launch/start.launch.py']),
         ('share/' + package_name + '/config', glob('config/*.yaml')),
+        # the hsm-turtle plugin of CyberiadaPro (docs/editor_plugin.md)
+        ('share/' + package_name + '/editor-plugin',
+            ['editor-plugin/plugin.json', 'editor-plugin/turtle_env']),
+        ('share/' + package_name + '/editor-plugin/i18n', glob('editor-plugin/i18n/*.json')),
+        ('share/' + package_name + '/editor-plugin/icons', glob('editor-plugin/icons/*.svg')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
